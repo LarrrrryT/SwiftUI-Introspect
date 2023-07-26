@@ -199,6 +199,19 @@ public enum Introspect {
     public static func findAncestor<AnyViewType: PlatformView>(ofType type: AnyViewType.Type, from entry: PlatformView) -> AnyViewType? {
         var superview = entry.superview
         while let s = superview {
+            if let typed = s as? AnyViewType {
+                return typed
+            }
+            superview = s.superview
+        }
+        return nil
+    }
+
+    /// Finds an ancestor of the specified type.
+    /// If it reaches the top of the view without finding the specified view type, it returns nil.
+    public static func findAncestorWithUsingFrame<AnyViewType: PlatformView>(ofType type: AnyViewType.Type, from entry: PlatformView) -> AnyViewType? {
+        var superview = entry.superview
+        while let s = superview {
             if let typed = s as? AnyViewType ?? findChildUsingFrame(ofType: type, in: s, from: entry) {
                 return typed
             }
@@ -297,6 +310,13 @@ public enum TargetViewSelector {
             return sibling
         }
         return Introspect.findAncestor(ofType: TargetView.self, from: entry)
+    }
+
+    public static func siblingOfTypeOrAncestorWithFrame<TargetView: PlatformView>(from entry: PlatformView) -> TargetView? {
+        if let sibling: TargetView = siblingOfType(from: entry) {
+            return sibling
+        }
+        return Introspect.findAncestorWithUsingFrame(ofType: TargetView.self, from: entry)
     }
 
     public static func ancestorOrSiblingContaining<TargetView: PlatformView>(from entry: PlatformView) -> TargetView? {
